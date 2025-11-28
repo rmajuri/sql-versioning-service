@@ -1,0 +1,6 @@
+@SqlVersioningService_HostAddress = http://localhost:5168
+
+GET {{SqlVersioningService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
