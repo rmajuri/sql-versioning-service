@@ -11,4 +11,6 @@ public class OrganizationMember
     public MemberRole Role { get; set; } = MemberRole.Member;
 
     public DateTimeOffset JoinedAt { get; set; }
+
+    public User? User { get; set; }
 }
