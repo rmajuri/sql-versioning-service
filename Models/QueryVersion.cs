@@ -1,9 +1,20 @@
+using System;
+
 namespace SqlVersioningService.Models;
 
 public class QueryVersion
 {
-    public int Id { get; set; }
-    public int QueryId { get; set; }
-    public string Hash { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
+    public Guid Id { get; set; }
+
+    public Guid QueryId { get; set; }
+
+    public Guid? ParentVersionId { get; set; }
+
+    public Guid AuthorId { get; set; }
+
+    public string BlobHash { get; set; } = string.Empty;
+
+    public string? Note { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
 }
