@@ -12,5 +12,7 @@ public class OrganizationMember
 
     public DateTimeOffset JoinedAt { get; set; }
 
+    public DateTimeOffset UpdatedAt { get; set; }
+
     public User? User { get; set; }
 }
