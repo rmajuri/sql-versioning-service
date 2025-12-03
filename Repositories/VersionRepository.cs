@@ -1,6 +1,6 @@
 using Dapper;
-using SqlVersioningService.Models;
 using SqlVersioningService.Infrastructure;
+using SqlVersioningService.Models;
 
 namespace SqlVersioningService.Repositories;
 
@@ -13,56 +13,97 @@ public class VersionRepository
         _db = db;
     }
 
-    public async Task<QueryVersion?> GetLatestVersionAsync(int queryId)
-    {
-        const string sql = @"
-            SELECT id, query_id AS QueryId, hash, created_at AS CreatedAt
-            FROM query_versions
-            WHERE query_id = @queryId
-            ORDER BY created_at DESC
-            LIMIT 1;
-        ";
+    // ------------------------------------------------------------
+    // SQL STATEMENTS
+    // ------------------------------------------------------------
 
+    private const string SqlSelectLatestByQueryId =
+        @"
+        SELECT Id, QueryId, ParentVersionId, AuthorId, BlobHash, Note, CreatedAt, UpdatedAt
+        FROM QueryVersions
+        WHERE QueryId = @QueryId
+        ORDER BY CreatedAt DESC
+        LIMIT 1;
+    ";
+
+    private const string SqlSelectByQueryId =
+        @"
+        SELECT Id, QueryId, ParentVersionId, AuthorId, BlobHash, Note, CreatedAt, UpdatedAt
+        FROM QueryVersions
+        WHERE QueryId = @QueryId
+        ORDER BY CreatedAt DESC;
+    ";
+
+    private const string SqlInsert =
+        @"
+        INSERT INTO QueryVersions
+            (Id, QueryId, ParentVersionId, AuthorId, BlobHash, Note, CreatedAt, UpdatedAt)
+        VALUES
+            (@Id, @QueryId, @ParentVersionId, @AuthorId, @BlobHash, @Note, @CreatedAt, @UpdatedAt);
+    ";
+
+    private const string SqlExists =
+        @"
+        SELECT EXISTS(
+            SELECT 1 FROM QueryVersions WHERE QueryId = @QueryId AND BlobHash = @BlobHash
+        );
+    ";
+
+    // ------------------------------------------------------------
+    // REPOSITORY METHODS
+    // ------------------------------------------------------------
+
+    public async Task<QueryVersion?> GetLatestVersionAsync(Guid queryId)
+    {
         using var conn = _db.CreateConnection();
-        return await conn.QuerySingleOrDefaultAsync<QueryVersion>(sql, new { queryId });
+        return await conn.QuerySingleOrDefaultAsync<QueryVersion>(
+            SqlSelectLatestByQueryId,
+            new { QueryId = queryId }
+        );
     }
 
-    public async Task<IEnumerable<QueryVersion>> GetAllVersionsAsync(int queryId)
+    public async Task<IEnumerable<QueryVersion>> GetAllVersionsAsync(Guid queryId)
     {
-        const string sql = @"
-            SELECT id, query_id AS QueryId, hash, created_at AS CreatedAt
-            FROM query_versions
-            WHERE query_id = @queryId
-            ORDER BY created_at DESC;
-        ";
-
         using var conn = _db.CreateConnection();
-        return await conn.QueryAsync<QueryVersion>(sql, new { queryId });
+        return await conn.QueryAsync<QueryVersion>(SqlSelectByQueryId, new { QueryId = queryId });
     }
 
-    public async Task<int> InsertVersionAsync(int queryId, string hash)
+    public async Task CreateAsync(QueryVersion version)
     {
-        const string sql = @"
-            INSERT INTO query_versions (query_id, hash)
-            VALUES (@queryId, @hash)
-            RETURNING id;
-        ";
+        if (version == null)
+            throw new ArgumentNullException(nameof(version));
+
+        // ensure ids and timestamps
+        if (version.Id == Guid.Empty)
+            version.Id = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        if (version.CreatedAt == default)
+            version.CreatedAt = now;
+        version.UpdatedAt = now;
 
         using var conn = _db.CreateConnection();
-        return await conn.ExecuteScalarAsync<int>(sql, new { queryId, hash });
+        await conn.ExecuteAsync(
+            SqlInsert,
+            new
+            {
+                version.Id,
+                version.QueryId,
+                version.ParentVersionId,
+                version.AuthorId,
+                version.BlobHash,
+                version.Note,
+                version.CreatedAt,
+                version.UpdatedAt,
+            }
+        );
     }
 
-    public async Task<bool> VersionExistsAsync(int queryId, string hash)
+    public async Task<bool> VersionExistsAsync(Guid queryId, string blobHash)
     {
-        const string sql = @"
-            SELECT EXISTS (
-                SELECT 1 
-                FROM query_versions
-                WHERE query_id = @queryId AND hash = @hash
-            );
-        ";
-
         using var conn = _db.CreateConnection();
-        return await conn.ExecuteScalarAsync<bool>(sql, new { queryId, hash });
+        return await conn.ExecuteScalarAsync<bool>(
+            SqlExists,
+            new { QueryId = queryId, BlobHash = blobHash }
+        );
     }
 }

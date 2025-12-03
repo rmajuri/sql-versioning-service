@@ -16,22 +16,24 @@ public class QueryRepository
 
     private const string SqlSelectById =
         @"
-        SELECT Id, OrganizationId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt
+        SELECT Id, OrganizationId, OwnerUserId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt
         FROM Queries
-        WHERE Id = @Id;
+        WHERE Id = @Id AND IsDeleted = FALSE;
     ";
 
     private const string SqlSelectByOrganizationId =
         @"
         SELECT Id, OrganizationId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt
         FROM Queries
-        WHERE OrganizationId = @OrganizationId;";
+        WHERE OrganizationId = @OrganizationId AND IsDeleted = FALSE;
+    ";
 
     private const string SqlSelectByOwnerUserId =
         @"  
         SELECT Id, OwnerUserId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt
         FROM Queries
-        WHERE OwnerUserId = @OwnerUserId;";
+        WHERE OwnerUserId = @OwnerUserId AND IsDeleted = FALSE; 
+    ";
 
     private const string SqlInsert =
         @"
