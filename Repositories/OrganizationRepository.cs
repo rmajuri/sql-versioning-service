@@ -47,6 +47,14 @@ public class OrganizationRepository
         WHERE Id = @Id;
     ";
 
+    private const string SqlSelectByUserId =
+        @"
+        SELECT o.Id, o.Name, o.OrgAdminId, o.IsDeleted, o.CreatedAt, o.UpdatedAt, o.DeletedAt
+        FROM Organizations o
+        JOIN OrganizationMembers om ON om.OrganizationId = o.Id
+        WHERE om.UserId = @UserId AND om.IsDeleted = FALSE;
+    ";
+
     // ------------------------------------------------------------
     // REPOSITORY METHODS
     // ------------------------------------------------------------
@@ -55,6 +63,12 @@ public class OrganizationRepository
     {
         using var conn = _db.CreateConnection();
         return await conn.QuerySingleOrDefaultAsync<Organization>(SqlSelectById, new { Id = id });
+    }
+
+    public async Task<IEnumerable<Organization>> GetByUserIdAsync(Guid userId)
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.QueryAsync<Organization>(SqlSelectByUserId, new { UserId = userId });
     }
 
     public async Task CreateAsync(Organization org)
