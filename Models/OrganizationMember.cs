@@ -21,6 +21,4 @@ public class OrganizationMember
     public DateTimeOffset? DeletedAt { get; set; }
 
     public User? User { get; set; }
-
-    public Organization? Organization { get; set; }
 }
