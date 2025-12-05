@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SqlVersioningService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ceabb4457f8185a6881eb43aaeb552fabbfb12f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a9bdbfaf7f8d5ced3de3dda4d2ef78ac0bcd3c18")]
 [assembly: System.Reflection.AssemblyProductAttribute("SqlVersioningService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SqlVersioningService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
