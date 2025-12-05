@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
 
-namespace SqlVersioningService.Models;
+namespace SqlVersioningService.Models.Responses;
 
-public class User
+public class UserResponse
 {
     public Guid Id { get; set; }
 
@@ -15,6 +14,4 @@ public class User
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
-
-    public DateTimeOffset? DeletedAt { get; set; }
 }
