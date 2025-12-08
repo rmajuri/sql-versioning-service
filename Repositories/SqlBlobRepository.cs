@@ -12,15 +12,15 @@ public class SqlBlobRepository : ISqlBlobRepository
 
     private const string SqlSelectByHash =
         @"
-        SELECT hash, bytes_location AS BytesLocation, bytes_size AS BytesSize
+        SELECT hash, bytes_size AS BytesSize
         FROM sql_blobs
         WHERE hash = @Hash;
     ";
 
     private const string SqlUpsert =
         @"
-        INSERT INTO sql_blobs (hash, bytes_location, bytes_size)
-        VALUES (@Hash, @BytesLocation, @BytesSize)
+        INSERT INTO sql_blobs (hash, bytes_size)
+        VALUES (@Hash, @BytesSize)
         ON CONFLICT (hash) DO NOTHING;
     ";
 
@@ -40,15 +40,7 @@ public class SqlBlobRepository : ISqlBlobRepository
     public async Task<bool> CreateIfNotExistsAsync(SqlBlob blob)
     {
         using var conn = _db.CreateConnection();
-        var affected = await conn.ExecuteAsync(
-            SqlUpsert,
-            new
-            {
-                blob.Hash,
-                blob.BytesLocation,
-                blob.BytesSize,
-            }
-        );
+        var affected = await conn.ExecuteAsync(SqlUpsert, new { blob.Hash, blob.BytesSize });
 
         return affected > 0; // true = newly inserted, false = already existed
     }

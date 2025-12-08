@@ -4,18 +4,19 @@ namespace SqlVersioningService.Services;
 
 public class QueryVersioningService
 {
-    private readonly QueryRepository _queries;
-    private readonly VersionRepository _versions;
-    private readonly HashingService _hashing;
+    private readonly QueryRepository _queryRepo;
+    private readonly VersionRepository _versionRepo;
+    private readonly HashingService _hashingService;
 
     public QueryVersioningService(
-        QueryRepository queries,
-        VersionRepository versions,
-        HashingService hashing)
+        QueryRepository _queryRepo,
+        VersionRepository _versionRepo,
+        HashingService _hashingService
+    )
     {
-        _queries = queries;
-        _versions = versions;
-        _hashing = hashing;
+        _queryRepo = _queryRepo;
+        _versionRepo = _versionRepo;
+        _hashingService = _hashingService;
     }
 
     public async Task<string> ComputeVersionHashAsync(string sql)
