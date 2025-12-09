@@ -7,20 +7,23 @@ public class QueryVersioningService
 {
     private readonly QueryRepository _queryRepo;
     private readonly VersionRepository _versionRepo;
+    private readonly SqlBlobRepository _blobRepo;
+    private readonly IBlobStorageService _blobStorage;
     private readonly HashingService _hashingService;
-    private readonly IBlobStorageService _blobStorageService;
 
     public QueryVersioningService(
         QueryRepository queryRepo,
         VersionRepository versionRepo,
-        HashingService hashingService,
-        IBlobStorageService blobStorageService
+        SqlBlobRepository blobRepo,
+        IBlobStorageService blobStorage,
+        HashingService hashingService
     )
     {
         _queryRepo = queryRepo;
         _versionRepo = versionRepo;
+        _blobRepo = blobRepo;
+        _blobStorage = blobStorage;
         _hashingService = hashingService;
-        _blobStorageService = blobStorageService;
     }
 
     public async Task<QueryVersion> CreateVersionAsync(
@@ -28,25 +31,44 @@ public class QueryVersioningService
         string sql,
         string? note)
     {
+        var now = DateTimeOffset.UtcNow;
+
         // 1. Compute hash
         var hash = _hashingService.ComputeHash(sql);
 
-        // 2. Create version record
+        // 2. Upload blob if needed
+        if (!await _blobRepo.ExistsAsync(hash))
+        {
+            await _blobStorage.UploadAsync(hash, sql);
+
+            var blob = new SqlBlob
+            {
+                Hash = hash,
+                BytesSize = sql.Length
+            };
+
+            await _blobRepo.CreateIfNotExistsAsync(blob);
+        }
+
+        // 3. Get parent version id
+        var parentVersionId = await _versionRepo.GetHeadVersionIdAsync(queryId);
+
+        // 4. Insert version
         var version = new QueryVersion
         {
             Id = Guid.NewGuid(),
             QueryId = queryId,
             BlobHash = hash,
+            ParentVersionId = parentVersionId,
             Note = note,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
         await _versionRepo.CreateAsync(version);
 
-        // 3. Update Query's HeadVersionId
-        var query = await _queryRepo.GetByIdAsync(queryId) ?? throw new Exception("Query not found");
-        query.HeadVersionId = version.Id;
-        await _queryRepo.UpdateAsync(query);
+        // 5. Update Query Head pointer
+        await _queryRepo.UpdateHeadVersionAsync(queryId, version.Id);
 
         return version;
     }

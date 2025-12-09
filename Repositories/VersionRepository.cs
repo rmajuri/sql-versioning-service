@@ -49,6 +49,13 @@ public class VersionRepository
         );
     ";
 
+    private const string SqlSelectHeadVersionId =
+        @"
+        SELECT HeadVersionId
+        FROM Queries
+        WHERE Id = @QueryId;
+    ";
+
     // ------------------------------------------------------------
     // REPOSITORY METHODS
     // ------------------------------------------------------------
@@ -106,4 +113,11 @@ public class VersionRepository
             new { QueryId = queryId, BlobHash = blobHash }
         );
     }
+
+    public async Task<Guid?> GetHeadVersionIdAsync(Guid queryId)
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.ExecuteScalarAsync<Guid?>(SqlSelectHeadVersionId, new { QueryId = queryId });
+    }
+
 }

@@ -16,14 +16,14 @@ public class UserRepository
 
     private const string SqlSelectById =
         @"
-        SELECT Id, Email, Name, CreatedAt, UpdatedAt, DeletedAt
+        SELECT Id, Email, Name, CreatedAt, UpdatedAt, IsDeleted, DeletedAt
         FROM Users
         WHERE Id = @Id AND IsDeleted = FALSE;
     ";
 
     private const string SqlSelectByEmail =
         @"
-        SELECT Id, Email, Name, CreatedAt, UpdatedAt, DeletedAt
+        SELECT Id, Email, Name, CreatedAt, UpdatedAt, IsDeleted, DeletedAt
         FROM Users
         WHERE Email = @Email AND IsDeleted = FALSE;
     ";
@@ -60,7 +60,7 @@ public class UserRepository
 
     private const string SqlSelectMembershipsByUserId =
         @"
-        SELECT OrganizationId, UserId, Role, JoinedAt, UpdatedAt
+        SELECT OrganizationId, UserId, Role, JoinedAt, UpdatedAt, IsDeleted, DeletedAt
         FROM OrganizationMembers
         WHERE UserId = @UserId AND IsDeleted = FALSE;
     ";

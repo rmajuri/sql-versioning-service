@@ -62,6 +62,14 @@ public class QueryRepository
         WHERE Id = @Id;
     ";
 
+    private const string SqlUpdateHeadVersion =
+        @"
+        UPDATE Queries
+        SET HeadVersionId = @VersionId,
+            UpdatedAt = @Now
+        WHERE Id = @QueryId;
+    ";
+
     // ------------------------------------------------------------
     // REPOSITORY METHODS
     // ------------------------------------------------------------
@@ -138,4 +146,21 @@ public class QueryRepository
 
         return affected > 0;
     }
+
+    public async Task<bool> UpdateHeadVersionAsync(Guid queryId, Guid newVersionId)
+    {
+        using var conn = _db.CreateConnection();
+        var affected = await conn.ExecuteAsync(
+            SqlUpdateHeadVersion,
+            new
+            {
+                QueryId = queryId,
+                VersionId = newVersionId,
+                Now = DateTimeOffset.UtcNow
+            }
+        );
+
+        return affected > 0;
+    }
+
 }
