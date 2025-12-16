@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SqlVersioningService.Services;
+using SqlVersioningService.DTOs.Responses;
 
 namespace SqlVersioningService.Controllers;
 
@@ -22,14 +23,6 @@ public class QueriesController : ControllerBase
     // ------------------------------------------------------------
     // CREATE QUERY + INITIAL VERSION
     // ------------------------------------------------------------
-
-    public record CreateQueryRequest(
-        string Name,
-        Guid OrganizationId,
-        Guid OwnerUserId,
-        string Sql,
-        string? Note
-    );
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateQueryRequest req)

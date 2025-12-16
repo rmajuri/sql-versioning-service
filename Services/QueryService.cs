@@ -46,12 +46,15 @@ public class QueryService
         return await _queryRepo.GetByOwnerUserIdAsync(ownerUserId);
     }
 
-    public async Task<bool> UpdateAsync(Query query)
+    public async Task<bool> UpdateHeadVersionAsync(Guid queryId, Guid headVersionId)
     {
+        var query = await _queryRepo.GetByIdAsync(queryId);
         if (query == null)
-            throw new ArgumentNullException(nameof(query));
+            return false;
 
+        query.HeadVersionId = headVersionId;
         query.UpdatedAt = DateTimeOffset.UtcNow;
+
         return await _queryRepo.UpdateAsync(query);
     }
 
