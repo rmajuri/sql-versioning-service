@@ -117,7 +117,9 @@ public class VersionRepository
     public async Task<Guid?> GetHeadVersionIdAsync(Guid queryId)
     {
         using var conn = _db.CreateConnection();
-        return await conn.ExecuteScalarAsync<Guid?>(SqlSelectHeadVersionId, new { QueryId = queryId });
+        return await conn.ExecuteScalarAsync<Guid?>(
+            SqlSelectHeadVersionId,
+            new { QueryId = queryId }
+        );
     }
-
 }

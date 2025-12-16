@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: sql_versioning_test_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: sql_versioning_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sql_versioning_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    # Explicitly no volume for tests
+    # This ensures a clean DB on container restart
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sql_versioning_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres
+    ports:
+      - "5000:8080"

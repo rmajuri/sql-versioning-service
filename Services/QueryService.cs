@@ -7,9 +7,7 @@ public class QueryService
 {
     private readonly QueryRepository _queryRepo;
 
-    public QueryService(
-        QueryRepository queryRepo
-    )
+    public QueryService(QueryRepository queryRepo)
     {
         _queryRepo = queryRepo;
     }
@@ -44,18 +42,6 @@ public class QueryService
     public async Task<IEnumerable<Query>> GetByOwnerUserIdAsync(Guid ownerUserId)
     {
         return await _queryRepo.GetByOwnerUserIdAsync(ownerUserId);
-    }
-
-    public async Task<bool> UpdateHeadVersionAsync(Guid queryId, Guid headVersionId)
-    {
-        var query = await _queryRepo.GetByIdAsync(queryId);
-        if (query == null)
-            return false;
-
-        query.HeadVersionId = headVersionId;
-        query.UpdatedAt = DateTimeOffset.UtcNow;
-
-        return await _queryRepo.UpdateAsync(query);
     }
 
     public async Task<bool> SoftDeleteAsync(Guid id)
