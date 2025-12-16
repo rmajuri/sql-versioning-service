@@ -1,34 +1,45 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using SqlVersioningService.Infrastructure;
 using SqlVersioningService.Services;
 using SqlVersioningService.Repositories;
-using SqlVersioningService.Infrastructure;
 
 namespace SqlVersioningService.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAppServices(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
         services.AddSingleton<DatabaseContext>();
+
+        services.Configure<AzureStorageOptions>(
+            config.GetSection("AzureStorage"));
+
+        services.AddSingleton<IBlobStorageService>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<AzureStorageOptions>>().Value;
+
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+                throw new InvalidOperationException(
+                    "AzureStorage:ConnectionString is not configured.");
+
+            return new AzureBlobStorageService(
+                options.ConnectionString,
+                options.ContainerName);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
         services.AddScoped<QueryRepository>();
         services.AddScoped<VersionRepository>();
         services.AddScoped<QueryVersioningService>();
+        services.AddScoped<QueryCreationService>();
         services.AddSingleton<HashingService>();
-        // Azure Blob storage service registration. Reads configuration from
-        // AzureStorage:ConnectionString and AzureStorage:ContainerName. Falls
-        // back to AZURE_STORAGE_CONNECTION_STRING env var and default container.
-        services.AddSingleton<IBlobStorageService>(sp =>
-        {
-            var config = sp.GetRequiredService<IConfiguration>();
-            var conn = config.GetValue<string>("AzureStorage:ConnectionString")
-                       ?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING")
-                       ?? string.Empty;
-            var container = config.GetValue<string>("AzureStorage:ContainerName") ?? "queries";
 
-            if (string.IsNullOrEmpty(conn))
-                throw new InvalidOperationException("Azure storage connection string is not configured. Set AzureStorage:ConnectionString or AZURE_STORAGE_CONNECTION_STRING.");
-
-            return new AzureBlobStorageService(conn, container);
-        });
         return services;
     }
 }
