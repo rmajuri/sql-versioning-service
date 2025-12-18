@@ -16,38 +16,22 @@ public class QueryRepository
 
     private const string SqlSelectById =
         @"
-        SELECT Id, OrganizationId, OwnerUserId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt, DeletedAt
+        SELECT Id, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt, DeletedAt
         FROM Queries
         WHERE Id = @Id AND IsDeleted = FALSE;
-    ";
-
-    private const string SqlSelectByOrganizationId =
-        @"
-        SELECT Id, OrganizationId, OwnerUserId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt, DeletedAt
-        FROM Queries
-        WHERE OrganizationId = @OrganizationId AND IsDeleted = FALSE;
-    ";
-
-    private const string SqlSelectByOwnerUserId =
-        @"  
-        SELECT Id, OrganizationId, OwnerUserId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt, DeletedAt
-        FROM Queries
-        WHERE OwnerUserId = @OwnerUserId AND IsDeleted = FALSE; 
     ";
 
     private const string SqlInsert =
         @"
         INSERT INTO Queries
-            (Id, OrganizationId, OwnerUserId, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt)
+            (Id, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt)
         VALUES
-            (@Id, @OrganizationId, @OwnerUserId, @Name, @HeadVersionId, @IsDeleted, @CreatedAt, @UpdatedAt);
+            (@Id, @Name, @HeadVersionId, @IsDeleted, @CreatedAt, @UpdatedAt);
     ";
 
     private const string SqlUpdate =
         @"
         UPDATE Queries SET
-            OrganizationId = @OrganizationId,
-            OwnerUserId = @OwnerUserId,
             Name = @Name,
             HeadVersionId = @HeadVersionId,
             UpdatedAt = @UpdatedAt
@@ -88,32 +72,12 @@ public class QueryRepository
             new
             {
                 query.Id,
-                query.OrganizationId,
-                query.OwnerUserId,
                 query.Name,
                 query.HeadVersionId,
                 query.IsDeleted,
                 query.CreatedAt,
                 query.UpdatedAt,
             }
-        );
-    }
-
-    public async Task<IEnumerable<Query>> GetByOrganizationIdAsync(Guid organizationId)
-    {
-        using var conn = _db.CreateConnection();
-        return await conn.QueryAsync<Query>(
-            SqlSelectByOrganizationId,
-            new { OrganizationId = organizationId }
-        );
-    }
-
-    public async Task<IEnumerable<Query>> GetByOwnerUserIdAsync(Guid ownerUserId)
-    {
-        using var conn = _db.CreateConnection();
-        return await conn.QueryAsync<Query>(
-            SqlSelectByOwnerUserId,
-            new { OwnerUserId = ownerUserId }
         );
     }
 
@@ -124,8 +88,6 @@ public class QueryRepository
             SqlUpdate,
             new
             {
-                query.OrganizationId,
-                query.OwnerUserId,
                 query.Name,
                 query.HeadVersionId,
                 query.UpdatedAt,
@@ -156,11 +118,10 @@ public class QueryRepository
             {
                 QueryId = queryId,
                 VersionId = newVersionId,
-                Now = DateTimeOffset.UtcNow
+                Now = DateTimeOffset.UtcNow,
             }
         );
 
         return affected > 0;
     }
-
 }

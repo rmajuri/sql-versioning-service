@@ -35,5 +35,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres
+      # Azure Storage (local Azurite) - connection-string auth
+      AzureStorage__ConnectionString: "UseDevelopmentStorage=true"
+      AzureStorage__ContainerName: "sqlblobs"
+
+      # Example: to use token-based auth (managed identity or service principal),
+      # set the container URI and provide credentials via environment variables
+      # AzureStorage__ContainerUri: "https://<account>.blob.core.windows.net/sqlblobs"
+      # AZURE_TENANT_ID: "<tenant-id>"
+      # AZURE_CLIENT_ID: "<client-id>"
+      # AZURE_CLIENT_SECRET: "<client-secret>"
     ports:
       - "5000:8080"

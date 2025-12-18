@@ -1,32 +1,54 @@
+using System;
+using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SqlVersioningService.Infrastructure;
-using SqlVersioningService.Services;
 using SqlVersioningService.Repositories;
+using SqlVersioningService.Services;
 
 namespace SqlVersioningService.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration config
+    )
     {
         services.AddSingleton<DatabaseContext>();
 
-        services.Configure<AzureStorageOptions>(
-            config.GetSection("AzureStorage"));
+        services.Configure<AzureStorageOptions>(config.GetSection("AzureStorage"));
 
         services.AddSingleton<IBlobStorageService>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<AzureStorageOptions>>().Value;
 
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
-                throw new InvalidOperationException(
-                    "AzureStorage:ConnectionString is not configured.");
+            // If a connection string is provided, use it (supports Azurite and account keys)
+            if (!string.IsNullOrWhiteSpace(options.ConnectionString))
+            {
+                var containerClient = new BlobContainerClient(
+                    options.ConnectionString,
+                    options.ContainerName
+                );
+                return new AzureBlobStorageService(containerClient);
+            }
 
-            return new AzureBlobStorageService(
-                options.ConnectionString,
-                options.ContainerName);
+            // If a container URI is provided, assume token-based auth (e.g. managed identity)
+            if (!string.IsNullOrWhiteSpace(options.ContainerUri))
+            {
+                var credential = new DefaultAzureCredential();
+                var containerClient = new BlobContainerClient(
+                    new Uri(options.ContainerUri),
+                    credential
+                );
+                return new AzureBlobStorageService(containerClient);
+            }
+
+            throw new InvalidOperationException(
+                "AzureStorage:ConnectionString or AzureStorage:ContainerUri must be configured."
+            );
         });
 
         return services;
