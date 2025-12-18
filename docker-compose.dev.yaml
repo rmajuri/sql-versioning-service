@@ -47,3 +47,27 @@ services:
       # AZURE_CLIENT_SECRET: "<client-secret>"
     ports:
       - "5000:8080"
+
+  test-runner:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    container_name: sql_versioning_test_runner
+    working_dir: /src
+    # Mount the repository so the SDK container can run tests against the sources
+    volumes:
+      - ./:/src:cached
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Provide the same database connection string as the API so integration tests work
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres
+      # Azure credentials should come from environment only — users/CI can override these
+      # Example for Azurite (local): set AzureStorage__ConnectionString=UseDevelopmentStorage=true
+      # Example for token auth (service principal): set AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET and AzureStorage__ContainerUri
+    command:
+      [
+        "bash",
+        "-lc",
+        "dotnet restore SqlVersioningService/SqlVersioningService.csproj && dotnet test --logger:trx --results-directory /src/TestResults",
+      ]
