@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using SqlVersioningService.Services;
 using SqlVersioningService.DTOs.Responses;
+using SqlVersioningService.Services;
 
 namespace SqlVersioningService.Controllers;
 
@@ -11,10 +11,7 @@ public class QueriesController : ControllerBase
     private readonly QueryService _queryService;
     private readonly QueryCreationService _creationService;
 
-    public QueriesController(
-        QueryService queryService,
-        QueryCreationService creationService
-    )
+    public QueriesController(QueryService queryService, QueryCreationService creationService)
     {
         _queryService = queryService;
         _creationService = creationService;
@@ -27,13 +24,7 @@ public class QueriesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateQueryRequest req)
     {
-        var result = await _creationService.CreateQueryAsync(
-            req.Name,
-            req.OrganizationId,
-            req.OwnerUserId,
-            req.Sql,
-            req.Note
-        );
+        var result = await _creationService.CreateQueryAsync(req.Name, req.Sql, req.Note);
 
         return Ok(result);
     }

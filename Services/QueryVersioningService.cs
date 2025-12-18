@@ -1,5 +1,5 @@
-using SqlVersioningService.Repositories;
 using SqlVersioningService.Models;
+using SqlVersioningService.Repositories;
 
 namespace SqlVersioningService.Services;
 
@@ -26,10 +26,7 @@ public class QueryVersioningService
         _hashingService = hashingService;
     }
 
-    public async Task<QueryVersion> CreateVersionAsync(
-        Guid queryId,
-        string sql,
-        string? note)
+    public async Task<QueryVersion> CreateVersionAsync(Guid queryId, string sql, string? note)
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -41,11 +38,7 @@ public class QueryVersioningService
         {
             await _blobStorage.UploadAsync(hash, sql);
 
-            var blob = new SqlBlob
-            {
-                Hash = hash,
-                BytesSize = sql.Length
-            };
+            var blob = new SqlBlob { Hash = hash, BytesSize = sql.Length };
 
             await _blobRepo.CreateIfNotExistsAsync(blob);
         }
@@ -62,7 +55,7 @@ public class QueryVersioningService
             ParentVersionId = parentVersionId,
             Note = note,
             CreatedAt = now,
-            UpdatedAt = now
+            UpdatedAt = now,
         };
 
         await _versionRepo.CreateAsync(version);

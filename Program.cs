@@ -8,15 +8,11 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationServices();
-builder.Services.AddJwtAuth(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 

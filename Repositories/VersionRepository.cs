@@ -19,7 +19,7 @@ public class VersionRepository
 
     private const string SqlSelectLatestByQueryId =
         @"
-        SELECT Id, QueryId, ParentVersionId, AuthorId, BlobHash, Note, CreatedAt, UpdatedAt
+        SELECT Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt
         FROM QueryVersions
         WHERE QueryId = @QueryId
         ORDER BY CreatedAt DESC
@@ -28,7 +28,7 @@ public class VersionRepository
 
     private const string SqlSelectByQueryId =
         @"
-        SELECT Id, QueryId, ParentVersionId, AuthorId, BlobHash, Note, CreatedAt, UpdatedAt
+        SELECT Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt
         FROM QueryVersions
         WHERE QueryId = @QueryId
         ORDER BY CreatedAt DESC;
@@ -37,9 +37,9 @@ public class VersionRepository
     private const string SqlInsert =
         @"
         INSERT INTO QueryVersions
-            (Id, QueryId, ParentVersionId, AuthorId, BlobHash, Note, CreatedAt, UpdatedAt)
+            (Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt)
         VALUES
-            (@Id, @QueryId, @ParentVersionId, @AuthorId, @BlobHash, @Note, @CreatedAt, @UpdatedAt);
+            (@Id, @QueryId, @ParentVersionId, @BlobHash, @Note, @CreatedAt, @UpdatedAt);
     ";
 
     private const string SqlExists =
@@ -96,7 +96,6 @@ public class VersionRepository
                 version.Id,
                 version.QueryId,
                 version.ParentVersionId,
-                version.AuthorId,
                 version.BlobHash,
                 version.Note,
                 version.CreatedAt,

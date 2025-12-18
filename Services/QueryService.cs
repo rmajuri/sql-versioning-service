@@ -34,16 +34,6 @@ public class QueryService
         return query.Id;
     }
 
-    public async Task<IEnumerable<Query>> GetByOrganizationIdAsync(Guid organizationId)
-    {
-        return await _queryRepo.GetByOrganizationIdAsync(organizationId);
-    }
-
-    public async Task<IEnumerable<Query>> GetByOwnerUserIdAsync(Guid ownerUserId)
-    {
-        return await _queryRepo.GetByOwnerUserIdAsync(ownerUserId);
-    }
-
     public async Task<bool> SoftDeleteAsync(Guid id)
     {
         return await _queryRepo.SoftDeleteAsync(id);
