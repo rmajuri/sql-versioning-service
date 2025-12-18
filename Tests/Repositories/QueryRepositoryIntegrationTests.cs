@@ -16,8 +16,6 @@ public class QueryRepositoryIntegrationTests
         {
             Id = Guid.NewGuid(),
             Name = "Integration Test",
-            OrganizationId = Guid.NewGuid(),
-            OwnerUserId = Guid.NewGuid(),
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             IsDeleted = false,
@@ -30,7 +28,6 @@ public class QueryRepositoryIntegrationTests
         // Assert
         Assert.NotNull(fetched);
         Assert.Equal(query.Name, fetched!.Name);
-        Assert.Equal(query.OrganizationId, fetched.OrganizationId);
     }
 
     [Fact]

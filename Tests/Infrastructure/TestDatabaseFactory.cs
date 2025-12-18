@@ -40,8 +40,6 @@ public static class TestDatabaseFactory
                 @"
                 CREATE TABLE IF NOT EXISTS Queries (
                     Id UUID PRIMARY KEY,
-                    OrganizationId UUID NULL,
-                    OwnerUserId UUID NULL,
                     Name TEXT NOT NULL,
                     HeadVersionId UUID NULL,
                     IsDeleted BOOLEAN NOT NULL DEFAULT FALSE,
@@ -54,7 +52,6 @@ public static class TestDatabaseFactory
                     Id UUID PRIMARY KEY,
                     QueryId UUID NOT NULL REFERENCES Queries(Id) ON DELETE CASCADE,
                     ParentVersionId UUID NULL REFERENCES QueryVersions(Id),
-                    AuthorId UUID NULL,
                     BlobHash TEXT NOT NULL,
                     Note TEXT NULL,
                     CreatedAt TIMESTAMPTZ NOT NULL,

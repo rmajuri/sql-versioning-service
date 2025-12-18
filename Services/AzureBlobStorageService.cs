@@ -16,7 +16,7 @@ public class AzureBlobStorageService : IBlobStorageService
 
     private static string GetBlobPath(string hash)
     {
-        // Optional: put blobs in a folder for organization
+        // Content-addressed storage: one blob per unique SQL hash
         return $"queries/{hash}";
     }
 

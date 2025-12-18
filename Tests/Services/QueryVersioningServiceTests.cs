@@ -7,12 +7,13 @@ using Xunit;
 public class QueryVersioningServiceTests
 {
     [Fact]
-    public async Task CreateVersionAsync_UploadsBlob_WhenBlobDoesNotExist()
+    public async Task CreateVersionAsync_UploadsBlobAndCreatesMetadata_WhenBlobDoesNotExist()
     {
         // Arrange
         var queryId = Guid.NewGuid();
-        var sql = "SELECT * FROM users;";
-        var hash = new HashingService().ComputeHash(sql);
+        var sql = "SELECT * FROM widgets;";
+        var hashingService = new HashingService();
+        var hash = hashingService.ComputeHash(sql);
 
         var queryRepo = new Mock<QueryRepository>(null!);
         var versionRepo = new Mock<VersionRepository>(null!);
@@ -28,7 +29,7 @@ public class QueryVersioningServiceTests
             versionRepo.Object,
             blobRepo.Object,
             blobStorage.Object,
-            new HashingService()
+            hashingService
         );
 
         // Act
@@ -45,18 +46,28 @@ public class QueryVersioningServiceTests
             Times.Once
         );
 
-        versionRepo.Verify(r => r.CreateAsync(It.IsAny<QueryVersion>()), Times.Once);
+        versionRepo.Verify(
+            r =>
+                r.CreateAsync(
+                    It.Is<QueryVersion>(v =>
+                        v.QueryId == queryId && v.SqlHash == hash && v.ParentVersionId == null
+                    )
+                ),
+            Times.Once
+        );
 
         queryRepo.Verify(r => r.UpdateHeadVersionAsync(queryId, version.Id), Times.Once);
     }
 
     [Fact]
-    public async Task CreateVersionAsync_DoesNotUploadBlob_WhenBlobExists()
+    public async Task CreateVersionAsync_DoesNotUploadBlobOrCreateMetadata_WhenBlobAlreadyExists()
     {
         // Arrange
         var queryId = Guid.NewGuid();
-        var sql = "SELECT * FROM users;";
-        var hash = new HashingService().ComputeHash(sql);
+        var sql = "SELECT * FROM widgets;";
+        var hashingService = new HashingService();
+        var hash = hashingService.ComputeHash(sql);
+        var existingHeadVersionId = Guid.NewGuid();
 
         var queryRepo = new Mock<QueryRepository>(null!);
         var versionRepo = new Mock<VersionRepository>(null!);
@@ -65,14 +76,16 @@ public class QueryVersioningServiceTests
 
         blobRepo.Setup(r => r.ExistsAsync(hash)).ReturnsAsync(true);
 
-        versionRepo.Setup(r => r.GetHeadVersionIdAsync(queryId)).ReturnsAsync(Guid.NewGuid());
+        versionRepo
+            .Setup(r => r.GetHeadVersionIdAsync(queryId))
+            .ReturnsAsync(existingHeadVersionId);
 
         var service = new QueryVersioningService(
             queryRepo.Object,
             versionRepo.Object,
             blobRepo.Object,
             blobStorage.Object,
-            new HashingService()
+            hashingService
         );
 
         // Act
@@ -82,5 +95,19 @@ public class QueryVersioningServiceTests
         blobStorage.Verify(b => b.UploadAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
 
         blobRepo.Verify(r => r.CreateIfNotExistsAsync(It.IsAny<SqlBlob>()), Times.Never);
+
+        versionRepo.Verify(
+            r =>
+                r.CreateAsync(
+                    It.Is<QueryVersion>(v =>
+                        v.QueryId == queryId
+                        && v.SqlHash == hash
+                        && v.ParentVersionId == existingHeadVersionId
+                    )
+                ),
+            Times.Once
+        );
+
+        queryRepo.Verify(r => r.UpdateHeadVersionAsync(queryId, It.IsAny<Guid>()), Times.Once);
     }
 }
