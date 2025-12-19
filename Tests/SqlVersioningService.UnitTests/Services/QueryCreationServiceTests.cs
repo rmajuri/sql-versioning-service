@@ -3,6 +3,8 @@ using SqlVersioningService.Models;
 using SqlVersioningService.Services;
 using Xunit;
 
+namespace SqlVersioningService.UnitTests.Services;
+
 public class QueryCreationServiceTests
 {
     [Fact]

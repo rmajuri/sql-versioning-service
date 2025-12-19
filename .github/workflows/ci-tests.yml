@@ -7,32 +7,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__Default: Host=postgres;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres
-      # Optionally provide Azure credentials from repository secrets (do NOT commit secrets)
-      # AzureStorage__ConnectionString: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-      # AzureStorage__ContainerUri: ${{ secrets.AZURE_STORAGE_CONTAINER_URI }}
-      # AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      # AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      # AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Build and run tests via docker-compose test-runner
-        # Run docker compose up; test-runner will exit with the test result code
-        run: |
-          docker compose -f docker-compose.dev.yaml up --abort-on-container-exit --build test-runner
+      - name: Unit tests
+        run: dotnet test Tests/SqlVersioningService.UnitTests
 
-      - name: Upload TestResults artifact
+      - name: Start Postgres
+        run: docker compose -f docker-compose.test.yml up -d
+
+      - name: Integration tests
+        run: dotnet test Tests/SqlVersioningService.IntegrationTests
+
+      - name: Teardown
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: TestResults
-
-      - name: Tear down docker-compose
-        if: always()
-        run: docker compose -f docker-compose.dev.yaml down --remove-orphans
+        run: docker compose -f docker-compose.test.yml down -v

@@ -1,15 +1,26 @@
+using SqlVersioningService.IntegrationTests.Infrastructure;
 using SqlVersioningService.Models;
 using SqlVersioningService.Repositories;
-using SqlVersioningService.Tests.Infrastructure;
 using Xunit;
 
+namespace SqlVersioningService.IntegrationTests.Repositories;
+
+[Collection("Postgres")]
+[Trait("Category", "Integration")]
 public class QueryRepositoryIntegrationTests
 {
+    private readonly PostgresFixture _fixture;
+
+    public QueryRepositoryIntegrationTests(PostgresFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task CreateAndFetchQuery_ById()
     {
         // Arrange
-        var db = TestDatabaseFactory.Create(); // wraps connection string
+        var db = _fixture.CreateDatabaseContext();
         var repo = new QueryRepository(db);
 
         var query = new Query
@@ -33,7 +44,7 @@ public class QueryRepositoryIntegrationTests
     [Fact]
     public async Task Versions_FormCorrectParentChain()
     {
-        var db = TestDatabaseFactory.Create();
+        var db = _fixture.CreateDatabaseContext();
         var queryRepo = new QueryRepository(db);
         var versionRepo = new VersionRepository(db);
 

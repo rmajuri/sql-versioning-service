@@ -4,6 +4,8 @@ using SqlVersioningService.Repositories;
 using SqlVersioningService.Services;
 using Xunit;
 
+namespace SqlVersioningService.UnitTests.Services;
+
 public class QueryVersioningServiceTests
 {
     [Fact]
