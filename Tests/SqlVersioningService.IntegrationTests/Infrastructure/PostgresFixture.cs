@@ -1,4 +1,5 @@
 using Dapper;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 using SqlVersioningService.Infrastructure;
 using Xunit;
@@ -14,8 +15,17 @@ public class PostgresFixture : IAsyncLifetime
     public string ConnectionString { get; } =
         "Host=localhost;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres";
 
+    private IConfiguration? _configuration;
+
     public async Task InitializeAsync()
     {
+        // Build configuration for DatabaseContext
+        _configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?> { ["ConnectionStrings:Default"] = ConnectionString }
+            )
+            .Build();
+
         await using var conn = new NpgsqlConnection(ConnectionString);
         await conn.OpenAsync();
 
@@ -64,7 +74,7 @@ public class PostgresFixture : IAsyncLifetime
     public DatabaseContext CreateDatabaseContext()
     {
         CleanupDatabase();
-        return new DatabaseContext(ConnectionString);
+        return new DatabaseContext(_configuration!);
     }
 
     /// <summary>

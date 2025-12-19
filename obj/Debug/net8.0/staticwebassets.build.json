@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "Z9xnA9kllCa3GflZW6EYLDldCOY1QySN56qbOu52/SY=",
+  "Source": "SqlVersioningService",
+  "BasePath": "_content/SqlVersioningService",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -5,10 +5,10 @@ namespace SqlVersioningService.Services;
 
 public class QueryCreationService
 {
-    private readonly QueryService _queryService;
-    private readonly QueryVersioningService _versionService;
+    private readonly IQueryService _queryService;
+    private readonly IQueryVersioningService _versionService;
 
-    public QueryCreationService(QueryService queryService, QueryVersioningService versionService)
+    public QueryCreationService(IQueryService queryService, IQueryVersioningService versionService)
     {
         _queryService = queryService;
         _versionService = versionService;

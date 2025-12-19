@@ -56,11 +56,16 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<QueryRepository>();
-        services.AddScoped<VersionRepository>();
-        services.AddScoped<QueryVersioningService>();
+        // Repositories
+        services.AddScoped<IQueryRepository, QueryRepository>();
+        services.AddScoped<IVersionRepository, VersionRepository>();
+        services.AddScoped<ISqlBlobRepository, SqlBlobRepository>();
+
+        // Services
+        services.AddScoped<IQueryService, QueryService>();
+        services.AddScoped<IQueryVersioningService, QueryVersioningService>();
         services.AddScoped<QueryCreationService>();
-        services.AddSingleton<HashingService>();
+        services.AddSingleton<IHashingService, HashingService>();
 
         return services;
     }

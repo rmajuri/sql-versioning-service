@@ -17,9 +17,9 @@ public class QueryVersioningServiceTests
         var hashingService = new HashingService();
         var hash = hashingService.ComputeHash(sql);
 
-        var queryRepo = new Mock<QueryRepository>(null!);
-        var versionRepo = new Mock<VersionRepository>(null!);
-        var blobRepo = new Mock<SqlBlobRepository>(null!);
+        var queryRepo = new Mock<IQueryRepository>();
+        var versionRepo = new Mock<IVersionRepository>();
+        var blobRepo = new Mock<ISqlBlobRepository>();
         var blobStorage = new Mock<IBlobStorageService>();
 
         blobRepo.Setup(r => r.ExistsAsync(hash)).ReturnsAsync(false);
@@ -52,7 +52,7 @@ public class QueryVersioningServiceTests
             r =>
                 r.CreateAsync(
                     It.Is<QueryVersion>(v =>
-                        v.QueryId == queryId && v.SqlHash == hash && v.ParentVersionId == null
+                        v.QueryId == queryId && v.BlobHash == hash && v.ParentVersionId == null
                     )
                 ),
             Times.Once
@@ -71,9 +71,9 @@ public class QueryVersioningServiceTests
         var hash = hashingService.ComputeHash(sql);
         var existingHeadVersionId = Guid.NewGuid();
 
-        var queryRepo = new Mock<QueryRepository>(null!);
-        var versionRepo = new Mock<VersionRepository>(null!);
-        var blobRepo = new Mock<SqlBlobRepository>(null!);
+        var queryRepo = new Mock<IQueryRepository>();
+        var versionRepo = new Mock<IVersionRepository>();
+        var blobRepo = new Mock<ISqlBlobRepository>();
         var blobStorage = new Mock<IBlobStorageService>();
 
         blobRepo.Setup(r => r.ExistsAsync(hash)).ReturnsAsync(true);
@@ -103,7 +103,7 @@ public class QueryVersioningServiceTests
                 r.CreateAsync(
                     It.Is<QueryVersion>(v =>
                         v.QueryId == queryId
-                        && v.SqlHash == hash
+                        && v.BlobHash == hash
                         && v.ParentVersionId == existingHeadVersionId
                     )
                 ),

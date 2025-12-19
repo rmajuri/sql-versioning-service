@@ -3,20 +3,20 @@ using SqlVersioningService.Repositories;
 
 namespace SqlVersioningService.Services;
 
-public class QueryVersioningService
+public class QueryVersioningService : IQueryVersioningService
 {
-    private readonly QueryRepository _queryRepo;
-    private readonly VersionRepository _versionRepo;
-    private readonly SqlBlobRepository _blobRepo;
+    private readonly IQueryRepository _queryRepo;
+    private readonly IVersionRepository _versionRepo;
+    private readonly ISqlBlobRepository _blobRepo;
     private readonly IBlobStorageService _blobStorage;
-    private readonly HashingService _hashingService;
+    private readonly IHashingService _hashingService;
 
     public QueryVersioningService(
-        QueryRepository queryRepo,
-        VersionRepository versionRepo,
-        SqlBlobRepository blobRepo,
+        IQueryRepository queryRepo,
+        IVersionRepository versionRepo,
+        ISqlBlobRepository blobRepo,
         IBlobStorageService blobStorage,
-        HashingService hashingService
+        IHashingService hashingService
     )
     {
         _queryRepo = queryRepo;

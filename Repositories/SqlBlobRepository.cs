@@ -4,7 +4,7 @@ using SqlVersioningService.Models;
 
 namespace SqlVersioningService.Repositories;
 
-public class SqlBlobRepository
+public class SqlBlobRepository : ISqlBlobRepository
 {
     private readonly DatabaseContext _db;
 

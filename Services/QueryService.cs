@@ -3,11 +3,11 @@ using SqlVersioningService.Repositories;
 
 namespace SqlVersioningService.Services;
 
-public class QueryService
+public class QueryService : IQueryService
 {
-    private readonly QueryRepository _queryRepo;
+    private readonly IQueryRepository _queryRepo;
 
-    public QueryService(QueryRepository queryRepo)
+    public QueryService(IQueryRepository queryRepo)
     {
         _queryRepo = queryRepo;
     }

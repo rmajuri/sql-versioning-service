@@ -11,8 +11,8 @@ public class QueryCreationServiceTests
     public async Task CreateQueryAsync_CreatesQuery_AndInitialVersion()
     {
         // Arrange
-        var queryService = new Mock<QueryService>(null!);
-        var versionService = new Mock<QueryVersioningService>(null!, null!, null!, null!, null!);
+        var queryService = new Mock<IQueryService>();
+        var versionService = new Mock<IQueryVersioningService>();
 
         queryService.Setup(q => q.CreateAsync(It.IsAny<Query>())).ReturnsAsync(Guid.NewGuid());
 
@@ -25,13 +25,7 @@ public class QueryCreationServiceTests
         var creationService = new QueryCreationService(queryService.Object, versionService.Object);
 
         // Act
-        var result = await creationService.CreateQueryAsync(
-            "Test Query",
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            "SELECT 1;",
-            "init"
-        );
+        var result = await creationService.CreateQueryAsync("Test Query", "SELECT 1;", "init");
 
         // Assert
         queryService.Verify(q => q.CreateAsync(It.IsAny<Query>()), Times.Once);

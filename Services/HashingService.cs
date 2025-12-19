@@ -3,7 +3,7 @@ using System.Text;
 
 namespace SqlVersioningService.Services;
 
-public class HashingService
+public class HashingService : IHashingService
 {
     public string ComputeHash(string input)
     {
