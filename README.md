@@ -2,42 +2,104 @@
 
 Short notes and developer commands.
 
-## Running tests
+## Running Tests
 
-This project provides a `test-runner` service in `docker-compose.dev.yaml` that runs tests inside a .NET SDK container and depends on the `postgres` test database.
+This project has two test suites:
 
-Recommended: run the `test-runner` via Docker Compose (no SDK required on host):
+| Project                                       | Type                              | Requires Database |
+| --------------------------------------------- | --------------------------------- | ----------------- |
+| `Tests/SqlVersioningService.UnitTests`        | Unit tests (mocked dependencies)  | No                |
+| `Tests/SqlVersioningService.IntegrationTests` | Integration tests (real Postgres) | Yes               |
 
-```bash
-# Start test-runner and dependencies; it will exit with the test result code
-docker compose -f docker-compose.dev.yaml up --abort-on-container-exit --build test-runner
+### CI Pipeline
 
-# Tear down containers and networks after the run
-docker compose -f docker-compose.dev.yaml down
+The GitHub Actions workflow (`.github/workflows/ci-tests.yml`) runs on every push and pull request:
+
+1. **Unit tests** run first (no Docker required)
+2. **PostgreSQL** is started via `docker-compose.test.yml`
+3. **Integration tests** run against the real database
+4. **Teardown** removes containers and volumes
+
+```yaml
+# Simplified CI flow
+- dotnet test Tests/SqlVersioningService.UnitTests
+- docker compose -f docker-compose.test.yml up -d
+- dotnet test Tests/SqlVersioningService.IntegrationTests
+- docker compose -f docker-compose.test.yml down -v
 ```
 
-Notes:
+### Running Tests Locally
 
-- Test results (TRX) are written to `./TestResults` in the repository because the repo is mounted into the container.
-- If tests require Azure Blob Storage behavior locally, provide credentials through environment variables only (not in appsettings):
-  - Azurite/local emulator: set `AzureStorage__ConnectionString=UseDevelopmentStorage=true` in your shell or compose environment.
-  - Token-based auth (service principal): set `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` and `AzureStorage__ContainerUri` in the environment.
-
-Alternative: run tests from the host while using docker-compose only for Postgres:
+#### Unit Tests Only (No Docker Required)
 
 ```bash
-# 1) Start only Postgres
-docker compose -f docker-compose.dev.yaml up -d postgres
+dotnet test Tests/SqlVersioningService.UnitTests
+```
 
-# 2) Wait for Postgres to be ready (container name: sql_versioning_test_db)
-echo "Waiting for Postgres to be ready..."
-until docker exec sql_versioning_test_db pg_isready -U postgres -d sql_versioning_test; do sleep 1; done
+#### Integration Tests (Requires Docker)
 
-# 3) Run tests locally (requires .NET SDK on host)
+```bash
+# 1. Start PostgreSQL
+docker compose -f docker-compose.test.yml up -d
+
+# 2. Wait for Postgres to be ready
+echo "Waiting for Postgres..."
+until docker exec sql-versioning-service-postgres-1 pg_isready -U postgres -d sql_versioning_test 2>/dev/null; do sleep 1; done
+
+# 3. Run integration tests
+dotnet test Tests/SqlVersioningService.IntegrationTests
+
+# 4. Teardown
+docker compose -f docker-compose.test.yml down -v
+```
+
+#### Run All Tests
+
+```bash
+# Start Postgres first
+docker compose -f docker-compose.test.yml up -d
+
+# Wait for ready
+until docker exec sql-versioning-service-postgres-1 pg_isready -U postgres -d sql_versioning_test 2>/dev/null; do sleep 1; done
+
+# Run entire solution
 dotnet test
 
-# 4) Tear down Postgres
-docker compose -f docker-compose.dev.yaml down
+# Teardown
+docker compose -f docker-compose.test.yml down -v
 ```
 
-For CI: prefer running tests in the `test-runner` service or a CI agent that runs `dotnet test`, and inject secret credentials as environment variables (do not commit secrets).
+#### Filter by Category
+
+Integration tests are marked with `[Trait("Category", "Integration")]`:
+
+```bash
+# Run only integration tests
+dotnet test --filter "Category=Integration"
+
+# Exclude integration tests (run unit tests only)
+dotnet test --filter "Category!=Integration"
+```
+
+### Test Database Configuration
+
+The `docker-compose.test.yml` starts PostgreSQL 16 with:
+
+| Setting  | Value                 |
+| -------- | --------------------- |
+| Host     | `localhost`           |
+| Port     | `5432`                |
+| Database | `sql_versioning_test` |
+| User     | `postgres`            |
+| Password | `postgres`            |
+
+Integration tests use xUnit **collection fixtures** to share a single database connection across tests, with data cleanup between test runs.
+
+### Azure Blob Storage (Optional)
+
+If tests require Azure Blob Storage behavior locally, provide credentials through environment variables:
+
+- **Azurite/local emulator**: `AzureStorage__ConnectionString=UseDevelopmentStorage=true`
+- **Token-based auth**: Set `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` and `AzureStorage__ContainerUri`
+
+> ⚠️ Do not commit secrets to the repository. Use environment variables or CI secrets.
