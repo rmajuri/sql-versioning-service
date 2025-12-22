@@ -2,6 +2,106 @@
 
 Short notes and developer commands.
 
+## Local Development
+
+### Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Docker](https://www.docker.com/get-started)
+
+### Quick Start
+
+```bash
+# 1. Start infrastructure (Postgres + Azurite)
+docker compose -f docker-compose.dev.yaml up -d postgres azurite
+
+# 2. Wait for Postgres to be ready
+until docker exec sql_versioning_test_db pg_isready -U postgres -d sql_versioning_test; do sleep 1; done
+
+# 3. Run migrations
+docker exec -i sql_versioning_test_db psql -U postgres -d sql_versioning_test < ops/migrations/001_core_domain_tables.sql
+docker exec -i sql_versioning_test_db psql -U postgres -d sql_versioning_test < ops/migrations/002_create_api_keys_table.sql
+
+# 4. Create an API key
+cd ops/create-api-key && dotnet run -- "Host=localhost;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres"
+cd ../..
+
+# 5. Run the API locally
+dotnet run
+```
+
+The API will be available at `http://localhost:5000` (or the port shown in console).
+
+### Running with Docker Compose (Full Stack)
+
+To run everything in containers (API + Postgres + Azurite):
+
+```bash
+docker compose -f docker-compose.dev.yaml up -d
+```
+
+| Service    | Container Name           | Port  | Description                 |
+| ---------- | ------------------------ | ----- | --------------------------- |
+| `api`      | `sql_versioning_api`     | 5000  | The API service             |
+| `postgres` | `sql_versioning_test_db` | 5432  | PostgreSQL 16 database      |
+| `azurite`  | `sql_versioning_azurite` | 10000 | Azure Blob Storage emulator |
+
+**Note:** When running the API in Docker, you still need to run migrations and create an API key (see Database Setup below).
+
+### Environment Variables
+
+When running locally with `dotnet run`, configure via `appsettings.Development.json` or environment variables:
+
+| Variable                         | Description                          | Default (Docker)             |
+| -------------------------------- | ------------------------------------ | ---------------------------- |
+| `ConnectionStrings__Default`     | PostgreSQL connection string         | See docker-compose.dev.yaml  |
+| `AzureStorage__ConnectionString` | Azure Blob Storage connection string | `UseDevelopmentStorage=true` |
+| `AzureStorage__ContainerName`    | Blob container name                  | `sqlblobs`                   |
+
+---
+
+## Database Setup
+
+### Starting PostgreSQL (Docker)
+
+```bash
+# Start the Postgres container
+docker compose -f docker-compose.dev.yaml up -d postgres
+
+# Wait for it to be ready
+until docker exec sql_versioning_test_db pg_isready -U postgres -d sql_versioning_test; do sleep 1; done
+```
+
+### Running Migrations
+
+Migrations are located in `ops/migrations/` and must be run in order:
+
+```bash
+# 1. Core domain tables (queries, query_versions, sql_blobs)
+docker exec -i sql_versioning_test_db psql -U postgres -d sql_versioning_test < ops/migrations/001_core_domain_tables.sql
+
+# 2. API keys table
+docker exec -i sql_versioning_test_db psql -U postgres -d sql_versioning_test < ops/migrations/002_create_api_keys_table.sql
+```
+
+Verify the tables were created:
+
+```bash
+docker exec sql_versioning_test_db psql -U postgres -d sql_versioning_test -c "\dt"
+```
+
+### Resetting the Database
+
+To start fresh (removes all data):
+
+```bash
+docker compose -f docker-compose.dev.yaml down -v
+docker compose -f docker-compose.dev.yaml up -d postgres
+# Then re-run migrations
+```
+
+---
+
 ## Authentication
 
 API access is protected by API keys. This service is **intentionally single-tenant** and does not implement user, organization, or role concepts.
@@ -25,12 +125,9 @@ curl -H "Authorization: Bearer <your-api-key>" http://localhost:5000/api/queries
 API keys are minted manually using an operator script. This is not exposed via HTTP.
 
 ```bash
-# 1. Apply the migration (first time only)
-psql -f ops/migrations/001_create_api_keys_table.sql <connection_string>
-
-# 2. Generate a new API key
+# Generate a new API key (migrations must be run first)
 cd ops/create-api-key
-dotnet run -- "Host=localhost;Port=5432;Database=sql_versioning;Username=postgres;Password=postgres"
+dotnet run -- "Host=localhost;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres"
 ```
 
 The script will:
