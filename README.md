@@ -2,6 +2,55 @@
 
 Short notes and developer commands.
 
+## Authentication
+
+API access is protected by API keys. This service is **intentionally single-tenant** and does not implement user, organization, or role concepts.
+
+### How It Works
+
+- All API endpoints (except `/health` and `/swagger`) require a valid API key
+- Keys are validated via middleware at the HTTP boundary
+- Keys are stored as SHA256 hashes in the database (plaintext keys are never stored)
+
+### Making Authenticated Requests
+
+Include the API key in the `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer <your-api-key>" http://localhost:5000/api/queries
+```
+
+### Creating API Keys (Operators Only)
+
+API keys are minted manually using an operator script. This is not exposed via HTTP.
+
+```bash
+# 1. Apply the migration (first time only)
+psql -f ops/migrations/001_create_api_keys_table.sql <connection_string>
+
+# 2. Generate a new API key
+cd ops/create-api-key
+dotnet run -- "Host=localhost;Port=5432;Database=sql_versioning;Username=postgres;Password=postgres"
+```
+
+The script will:
+
+1. Generate a cryptographically secure random key
+2. Hash and store it in the database
+3. Print the plaintext key **once** to stdout
+
+⚠️ **Store the key securely** - it cannot be retrieved after creation.
+
+### Revoking Keys
+
+To revoke a key, update the `revoked_at` column directly in the database:
+
+```sql
+UPDATE api_keys SET revoked_at = NOW() WHERE id = '<key-id>';
+```
+
+---
+
 ## Running Tests
 
 This project has two test suites:

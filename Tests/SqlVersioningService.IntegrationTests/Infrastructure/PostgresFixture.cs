@@ -56,6 +56,13 @@ public class PostgresFixture : IAsyncLifetime
                 hash TEXT PRIMARY KEY,
                 bytes_size INT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS api_keys (
+                id UUID PRIMARY KEY,
+                hashed_key TEXT NOT NULL UNIQUE,
+                created_at TIMESTAMPTZ NOT NULL,
+                revoked_at TIMESTAMPTZ NULL
+            );
         "
         );
     }
@@ -92,6 +99,7 @@ public class PostgresFixture : IAsyncLifetime
             DELETE FROM QueryVersions;
             DELETE FROM Queries;
             DELETE FROM sql_blobs;
+            DELETE FROM api_keys;
         "
         );
     }

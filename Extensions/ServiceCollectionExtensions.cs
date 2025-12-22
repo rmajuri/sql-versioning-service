@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IQueryRepository, QueryRepository>();
         services.AddScoped<IVersionRepository, VersionRepository>();
         services.AddScoped<ISqlBlobRepository, SqlBlobRepository>();
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
         // Services
         services.AddScoped<IQueryService, QueryService>();
