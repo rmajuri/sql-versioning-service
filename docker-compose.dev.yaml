@@ -22,28 +22,47 @@ services:
       retries: 5
 
     # Explicitly no volume for tests
-    # This ensures a clean DB on container restart
+    # Clean DB on restart
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: sql_versioning_azurite
+    restart: unless-stopped
+
+    command: >
+      azurite-blob
+      --blobHost 0.0.0.0
+      --blobPort 10000
+
+    ports:
+      - "10000:10000"
+
+    # Optional: add volume later if you want persistence
+    # volumes:
+    #   - azurite-data:/data
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: sql_versioning_api
+
     depends_on:
       postgres:
         condition: service_healthy
+      azurite:
+        condition: service_started
+
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=sql_versioning_test;Username=postgres;Password=postgres
-      # Azure Storage (local Azurite) - connection-string auth
+
+      # Azure Blob Storage (Azurite)
       AzureStorage__ConnectionString: "UseDevelopmentStorage=true"
       AzureStorage__ContainerName: "sqlblobs"
 
-      # Example: to use token-based auth (managed identity or service principal),
-      # set the container URI and provide credentials via environment variables
-      # AzureStorage__ContainerUri: "https://<account>.blob.core.windows.net/sqlblobs"
-      # AZURE_TENANT_ID: "<tenant-id>"
-      # AZURE_CLIENT_ID: "<client-id>"
-      # AZURE_CLIENT_SECRET: "<client-secret>"
     ports:
       - "5000:8080"
+# Optional later:
+# volumes:
+#   azurite-data:
