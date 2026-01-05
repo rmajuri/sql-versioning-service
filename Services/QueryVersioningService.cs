@@ -1,3 +1,4 @@
+using System.Text;
 using SqlVersioningService.Models;
 using SqlVersioningService.Repositories;
 
@@ -38,7 +39,7 @@ public class QueryVersioningService : IQueryVersioningService
         {
             await _blobStorage.UploadAsync(hash, sql);
 
-            var blob = new SqlBlob { Hash = hash, BytesSize = sql.Length };
+            var blob = new SqlBlob { Hash = hash, BytesSize = Encoding.UTF8.GetByteCount(sql) };
 
             await _blobRepo.CreateIfNotExistsAsync(blob);
         }
