@@ -65,4 +65,23 @@ public class QueryVersioningService : IQueryVersioningService
 
         return version;
     }
+
+    public async Task<IEnumerable<QueryVersion>> GetVersionsForQueryAsync(Guid queryId)
+    {
+        return await _versionRepo.GetAllVersionsAsync(queryId);
+    }
+
+    public async Task<QueryVersion?> GetVersionByIdAsync(Guid versionId)
+    {
+        return await _versionRepo.GetByIdAsync(versionId);
+    }
+
+    public async Task<string?> GetSqlForVersionAsync(Guid versionId)
+    {
+        var version = await _versionRepo.GetByIdAsync(versionId);
+        if (version == null)
+            return null;
+
+        return await _blobStorage.DownloadAsync(version.BlobHash);
+    }
 }

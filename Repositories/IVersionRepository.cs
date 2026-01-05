@@ -6,6 +6,7 @@ public interface IVersionRepository
 {
     Task<QueryVersion?> GetLatestVersionAsync(Guid queryId);
     Task<IEnumerable<QueryVersion>> GetAllVersionsAsync(Guid queryId);
+    Task<QueryVersion?> GetByIdAsync(Guid versionId);
     Task CreateAsync(QueryVersion version);
     Task<bool> VersionExistsAsync(Guid queryId, string blobHash);
     Task<Guid?> GetHeadVersionIdAsync(Guid queryId);

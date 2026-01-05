@@ -56,6 +56,14 @@ public class VersionRepository : IVersionRepository
         WHERE Id = @QueryId;
     ";
 
+    private const string SqlSelectById =
+        @"
+        SELECT Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt
+        FROM QueryVersions
+        WHERE Id = @VersionId
+        LIMIT 1;
+    ";
+
     // ------------------------------------------------------------
     // REPOSITORY METHODS
     // ------------------------------------------------------------
@@ -73,6 +81,15 @@ public class VersionRepository : IVersionRepository
     {
         using var conn = _db.CreateConnection();
         return await conn.QueryAsync<QueryVersion>(SqlSelectByQueryId, new { QueryId = queryId });
+    }
+
+    public async Task<QueryVersion?> GetByIdAsync(Guid versionId)
+    {
+        using var conn = _db.CreateConnection();
+        return await conn.QuerySingleOrDefaultAsync<QueryVersion>(
+            SqlSelectById,
+            new { VersionId = versionId }
+        );
     }
 
     public async Task CreateAsync(QueryVersion version)

@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using SqlVersioningService.DTOs.Requests;
-using SqlVersioningService.DTOs.Responses;
-using SqlVersioningService.Repositories;
 using SqlVersioningService.Services;
 
 namespace SqlVersioningService.Controllers;
@@ -10,19 +8,11 @@ namespace SqlVersioningService.Controllers;
 [Route("")]
 public class VersionsController : ControllerBase
 {
-    private readonly QueryVersioningService _versionService;
-    private readonly VersionRepository _versionRepo;
-    private readonly IBlobStorageService _blobStorage;
+    private readonly IQueryVersioningService _versionService;
 
-    public VersionsController(
-        QueryVersioningService versionService,
-        VersionRepository versionRepo,
-        IBlobStorageService blobStorage
-    )
+    public VersionsController(IQueryVersioningService versionService)
     {
         _versionService = versionService;
-        _versionRepo = versionRepo;
-        _blobStorage = blobStorage;
     }
 
     // ------------------------------------------------------------
@@ -35,9 +25,12 @@ public class VersionsController : ControllerBase
         [FromBody] CreateVersionRequest req
     )
     {
+        if (string.IsNullOrWhiteSpace(req.Sql))
+            return BadRequest(new { error = "Sql is required." });
+
         var version = await _versionService.CreateVersionAsync(queryId, req.Sql, req.Note);
 
-        return Ok(version);
+        return CreatedAtAction(nameof(GetVersionById), new { versionId = version.Id }, version);
     }
 
     // ------------------------------------------------------------
@@ -47,7 +40,7 @@ public class VersionsController : ControllerBase
     [HttpGet("queries/{queryId:guid}/versions")]
     public async Task<IActionResult> GetVersionsForQuery(Guid queryId)
     {
-        var versions = await _versionRepo.GetAllVersionsAsync(queryId);
+        var versions = await _versionService.GetVersionsForQueryAsync(queryId);
         return Ok(versions);
     }
 
@@ -58,8 +51,7 @@ public class VersionsController : ControllerBase
     [HttpGet("versions/{versionId:guid}")]
     public async Task<IActionResult> GetVersionById(Guid versionId)
     {
-        var versions = await _versionRepo.GetAllVersionsAsync(Guid.Empty);
-        var version = versions.FirstOrDefault(v => v.Id == versionId);
+        var version = await _versionService.GetVersionByIdAsync(versionId);
 
         if (version == null)
             return NotFound();
@@ -74,13 +66,7 @@ public class VersionsController : ControllerBase
     [HttpGet("versions/{versionId:guid}/sql")]
     public async Task<IActionResult> GetSqlForVersion(Guid versionId)
     {
-        var versions = await _versionRepo.GetAllVersionsAsync(Guid.Empty);
-        var version = versions.FirstOrDefault(v => v.Id == versionId);
-
-        if (version == null)
-            return NotFound();
-
-        var sql = await _blobStorage.DownloadAsync(version.BlobHash);
-        return Ok(new { sql });
+        var sql = await _versionService.GetSqlForVersionAsync(versionId);
+        return sql is null ? NotFound() : Ok(new { sql });
     }
 }
