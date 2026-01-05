@@ -2,6 +2,12 @@
 
 Short notes and developer commands.
 
+## Architecture
+
+For detailed architectural diagrams and system design documentation, see:
+
+🔗 **[Architecture Diagrams (IcePanel)](https://s.icepanel.io/o1cGKR8o8OtDKC/kI0d)**
+
 ## Local Development
 
 ### Prerequisites
