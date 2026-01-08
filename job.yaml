@@ -1,0 +1,39 @@
+name: sqlversioning-migrate-dev
+location: Central US
+properties:
+  configuration:
+    triggerType: Manual
+    replicaRetryLimit: 1
+    replicaTimeout: 1800
+    manualTriggerConfig:
+      parallelism: 1
+      replicaCompletionCount: 1
+    registries:
+      - server: acrsqlversioningdev15959.azurecr.io
+        identity: system
+    secrets:
+      - name: db-conn
+      - name: migrations-dir
+  environmentId: /subscriptions/1d646a30-20f6-4cad-bcec-420b369ee8d9/resourceGroups/rg-sqlversioning-dev/providers/Microsoft.App/managedEnvironments/cae-sqlversioning-dev
+  template:
+    containers:
+      - name: sqlversioning-migrate-dev
+        image: acrsqlversioningdev15959.azurecr.io/sql-versioning-service:0760172fb34babc3653fec2d7d5d98f150316b12
+        imageType: ContainerImage
+        command:
+          - sh
+        args:
+          - -c
+          - echo hello; dotnet --info; echo 'migrate dir:'; ls -la /app/migrate; echo 'migrations:'; ls -la /app/ops/migrations; echo done; exit 0
+        env:
+          - name: DB_CONN
+            secretRef: db-conn
+          - name: MIGRATIONS_DIR
+            value: /app/ops/migrations
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+    initContainers: null
+    volumes: null
+  workloadProfileName: Consumption
+type: Microsoft.App/jobs
