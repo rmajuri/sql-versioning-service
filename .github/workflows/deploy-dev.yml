@@ -38,15 +38,13 @@ jobs:
         env:
           RG: ${{ secrets.RESOURCE_GROUP }}
           JOB: ${{ secrets.MIGRATION_JOB_NAME }}
-          DB_CONN: ${{ secrets.DB_CONN }}
-          MIGRATIONS_DIR: /app/ops/migrations
           IMAGE: ${{ env.IMAGE }}
         run: |
-          az containerapp job update -g "$RG" -n "$JOB" \
-            --image "$IMAGE" \
-            --command "dotnet" "/app/migrate/MigrateRunner.dll" \
-            --secrets "db-conn=$DB_CONN" \
-            --env-vars "DB_CONN=secretref:db-conn" "MIGRATIONS_DIR=$MIGRATIONS_DIR"
+          set -euo pipefail
+          echo "Running migrations with IMAGE=$IMAGE"
+
+          az containerapp job update -g "$RG" -n "$JOB" --image "$IMAGE"
+          sleep 5
 
           EXEC=$(az containerapp job start -g "$RG" -n "$JOB" --query name -o tsv)
           echo "Started execution: $EXEC"
@@ -58,7 +56,6 @@ jobs:
               --query "properties.status" -o tsv)
 
             echo "Status: $STATUS"
-
             if [ "$STATUS" = "Succeeded" ]; then exit 0; fi
             if [ "$STATUS" = "Failed" ]; then exit 1; fi
             sleep 10
