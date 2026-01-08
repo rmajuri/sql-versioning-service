@@ -8,9 +8,14 @@ WORKDIR /src
 COPY SqlVersioningService.csproj ./
 RUN dotnet restore ./SqlVersioningService.csproj
 
-# Copy everything else and publish
+# Copy everything else
 COPY . ./
+
+# Publish API
 RUN dotnet publish ./SqlVersioningService.csproj -c Release -o /app/publish /p:UseAppHost=false
+
+# Publish migration runner (under ops/)
+RUN dotnet publish ./ops/MigrateRunner/MigrateRunner.csproj -c Release -o /app/migrate /p:UseAppHost=false
 
 # -------------------------------
 # Runtime stage
@@ -22,8 +27,14 @@ WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# Copy published output
+# Copy published API output
 COPY --from=build /app/publish ./
 
-ENTRYPOINT ["dotnet", "SqlVersioningService.dll"]
+# Copy migration runner output
+COPY --from=build /app/migrate ./migrate/
 
+# Copy raw SQL migration scripts (ops/migrations -> /app/ops/migrations)
+COPY ops/migrations ./ops/migrations
+
+# Default entrypoint: API
+ENTRYPOINT ["dotnet", "SqlVersioningService.dll"]
