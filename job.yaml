@@ -21,10 +21,9 @@ properties:
         image: acrsqlversioningdev15959.azurecr.io/sql-versioning-service:0760172fb34babc3653fec2d7d5d98f150316b12
         imageType: ContainerImage
         command:
-          - sh
+          - dotnet
         args:
-          - -c
-          - echo hello; dotnet --info; echo 'migrate dir:'; ls -la /app/migrate; echo 'migrations:'; ls -la /app/ops/migrations; echo done; exit 0
+          - /app/migrate/MigrateRunner.dll
         env:
           - name: DB_CONN
             secretRef: db-conn

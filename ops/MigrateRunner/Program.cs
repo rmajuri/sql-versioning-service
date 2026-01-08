@@ -5,6 +5,7 @@ using Dapper;
 using Npgsql;
 
 Console.WriteLine("MigrateRunner starting...");
+Console.Out.Flush();
 
 try
 {
@@ -19,7 +20,10 @@ try
         ?? throw new Exception("DB_CONN env var is required");
 
     string migrationsDir =
-        Environment.GetEnvironmentVariable("MIGRATIONS_DIR") ?? "/app/ops/migrate";
+        Environment.GetEnvironmentVariable("MIGRATIONS_DIR") ?? "/app/ops/migrations";
+
+    Console.WriteLine($"Using migrations dir: {migrationsDir}");
+    Console.Out.Flush();
 
     if (!Directory.Exists(migrationsDir))
         throw new Exception($"Migrations dir not found: {migrationsDir}");
@@ -30,6 +34,7 @@ try
         .ToList();
 
     Console.WriteLine($"Found {files.Count} migrations in {migrationsDir}");
+    Console.Out.Flush();
 
     await using var conn = new NpgsqlConnection(connStr);
     await conn.OpenAsync();
@@ -44,14 +49,14 @@ try
         """
     );
 
-    // Read applied migrations
     var applied = (await conn.QueryAsync<string>("SELECT id FROM schema_migrations")).ToHashSet(
         StringComparer.OrdinalIgnoreCase
     );
 
     foreach (var path in files)
     {
-        var id = Path.GetFileName(path); // e.g. 001_core_domain_tables.sql
+        var id = Path.GetFileName(path);
+
         if (applied.Contains(id))
         {
             Console.WriteLine($"SKIP {id}");
@@ -62,8 +67,8 @@ try
         var checksum = Sha256(sql);
 
         Console.WriteLine($"APPLY {id}");
+        Console.Out.Flush();
 
-        // Apply each file in a transaction (all-or-nothing)
         await using var tx = await conn.BeginTransactionAsync(IsolationLevel.ReadCommitted);
         try
         {
@@ -87,9 +92,11 @@ try
     }
 
     Console.WriteLine("Migrations complete.");
+    Console.Out.Flush();
 }
 catch (Exception ex)
 {
     Console.Error.WriteLine(ex.ToString());
+    Console.Error.Flush();
     throw;
 }
