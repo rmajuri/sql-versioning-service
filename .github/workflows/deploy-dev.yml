@@ -8,9 +8,6 @@ on:
 permissions:
   contents: read
 
-env:
-  IMAGE_NAME: sql-versioning-service
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,7 +20,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Log in to ACR using the Azure identity (no ACR user/pass needed)
       - name: ACR login (Azure identity)
         run: |
           az acr login --name "${{ secrets.ACR_NAME }}"
@@ -31,12 +27,45 @@ jobs:
       - name: Build + push image
         run: |
           IMAGE_TAG="${{ github.sha }}"
-          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
+          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${{ secrets.IMAGE_NAME }}:${IMAGE_TAG}"
 
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Run DB migrations (Container Apps Job)
+        env:
+          RG: ${{ secrets.RESOURCE_GROUP }}
+          JOB: ${{ secrets.MIGRATION_JOB_NAME }}
+          DB_CONN: ${{ secrets.DB_CONN }}
+          MIGRATIONS_DIR: /app/ops/migrations
+          IMAGE: ${{ env.IMAGE }}
+        run: |
+          az containerapp job update -g "$RG" -n "$JOB" \
+            --image "$IMAGE" \
+            --command "dotnet" "/app/migrate/MigrateRunner.dll" \
+            --secrets "db-conn=$DB_CONN" \
+            --env-vars "DB_CONN=secretref:db-conn" "MIGRATIONS_DIR=$MIGRATIONS_DIR"
+
+          EXEC=$(az containerapp job start -g "$RG" -n "$JOB" --query name -o tsv)
+          echo "Started execution: $EXEC"
+
+          for i in {1..90}; do
+            STATUS=$(az containerapp job execution show \
+              -g "$RG" -n "$JOB" \
+              --job-execution-name "$EXEC" \
+              --query "properties.status" -o tsv)
+
+            echo "Status: $STATUS"
+
+            if [ "$STATUS" = "Succeeded" ]; then exit 0; fi
+            if [ "$STATUS" = "Failed" ]; then exit 1; fi
+            sleep 10
+          done
+
+          echo "Timed out waiting for migrations."
+          exit 1
 
       - name: Update Container App image
         run: |
