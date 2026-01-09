@@ -1,0 +1,86 @@
+{
+  "id": "/subscriptions/1d646a30-20f6-4cad-bcec-420b369ee8d9/resourceGroups/rg-sqlversioning-dev/providers/Microsoft.App/jobs/sqlversioning-migrate-dev",
+  "identity": {
+    "principalId": "0ae51cea-9ac3-41de-b6a6-b7ad6fa70a5a",
+    "tenantId": "379b965d-a5e0-4e5a-89ab-a2e93b92f2ef",
+    "type": "SystemAssigned"
+  },
+  "location": "Central US",
+  "name": "sqlversioning-migrate-dev",
+  "properties": {
+    "configuration": {
+      "dapr": null,
+      "eventTriggerConfig": null,
+      "identitySettings": [],
+      "manualTriggerConfig": {
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "registries": [
+        {
+          "identity": "system",
+          "server": "acrsqlversioningdev15959.azurecr.io"
+        }
+      ],
+      "replicaRetryLimit": 1,
+      "replicaTimeout": 1800,
+      "scheduleTriggerConfig": null,
+      "secrets": [
+        {
+          "name": "db-conn"
+        },
+        {
+          "name": "migrations-dir"
+        }
+      ],
+      "triggerType": "Manual"
+    },
+    "environmentId": "/subscriptions/1d646a30-20f6-4cad-bcec-420b369ee8d9/resourceGroups/rg-sqlversioning-dev/providers/Microsoft.App/managedEnvironments/cae-sqlversioning-dev",
+    "eventStreamEndpoint": "https://centralus.azurecontainerapps.dev/subscriptions/1d646a30-20f6-4cad-bcec-420b369ee8d9/resourceGroups/rg-sqlversioning-dev/containerApps/sqlversioning-migrate-dev/eventstream",
+    "provisioningState": "Succeeded",
+    "runningStatus": "Ready",
+    "template": {
+      "containers": [
+        {
+          "args": [
+            "/app/migrate/MigrateRunner.dll"
+          ],
+          "command": [
+            "dotnet"
+          ],
+          "env": [
+            {
+              "name": "DB_CONN",
+              "secretRef": "db-conn",
+              "value": ""
+            },
+            {
+              "name": "MIGRATIONS_DIR",
+              "value": "/app/ops/migrations"
+            }
+          ],
+          "image": "acrsqlversioningdev15959.azurecr.io/sql-versioning-service:6434f517b9f5f617c92cf85a46eca41b4c80d412",
+          "imageType": "ContainerImage",
+          "name": "sqlversioning-migrate-dev",
+          "resources": {
+            "cpu": 0.5,
+            "memory": "1Gi"
+          }
+        }
+      ],
+      "initContainers": null,
+      "volumes": null
+    },
+    "workloadProfileName": "Consumption"
+  },
+  "resourceGroup": "rg-sqlversioning-dev",
+  "systemData": {
+    "createdAt": "2026-01-08T16:09:25.1046118",
+    "createdBy": "robmajuri@gmail.com",
+    "createdByType": "User",
+    "lastModifiedAt": "2026-01-08T20:41:30.3838417",
+    "lastModifiedBy": "78be4efd-a5b9-4964-9da2-f28d13298e00",
+    "lastModifiedByType": "Application"
+  },
+  "type": "Microsoft.App/jobs"
+}
