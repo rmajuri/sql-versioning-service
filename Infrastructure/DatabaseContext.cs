@@ -11,6 +11,5 @@ public class DatabaseContext
         _connectionString = config.GetConnectionString("Default")!;
     }
 
-    public NpgsqlConnection CreateConnection() =>
-        new NpgsqlConnection(_connectionString);
+    public NpgsqlConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 }

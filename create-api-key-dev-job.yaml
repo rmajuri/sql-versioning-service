@@ -1,0 +1,36 @@
+name: sqlversioning-createapikey-dev
+location: Central US
+properties:
+  configuration:
+    triggerType: Manual
+    replicaRetryLimit: 1
+    replicaTimeout: 1800
+    manualTriggerConfig:
+      parallelism: 1
+      replicaCompletionCount: 1
+    registries:
+      - server: acrsqlversioningdev15959.azurecr.io
+        identity: system
+    secrets:
+      - name: db-conn
+  environmentId: /subscriptions/1d646a30-20f6-4cad-bcec-420b369ee8d9/resourceGroups/rg-sqlversioning-dev/providers/Microsoft.App/managedEnvironments/cae-sqlversioning-dev
+  template:
+    containers:
+      - name: sqlversioning-createapikey-dev
+        image: acrsqlversioningdev15959.azurecr.io/sql-versioning-service:REPLACE_WITH_NEW_TAG
+        imageType: ContainerImage
+        command:
+          - /bin/sh
+        args:
+          - -lc
+          - dotnet /app/tools/create-api-key/CreateApiKey.dll "$DB_CONN"
+        env:
+          - name: DB_CONN
+            secretRef: db-conn
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+    initContainers: null
+    volumes: null
+  workloadProfileName: Consumption
+type: Microsoft.App/jobs
