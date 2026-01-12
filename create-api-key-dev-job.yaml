@@ -17,13 +17,12 @@ properties:
   template:
     containers:
       - name: sqlversioning-createapikey-dev
-        image: acrsqlversioningdev15959.azurecr.io/sql-versioning-service:REPLACE_WITH_NEW_TAG
+        image: acrsqlversioningdev15959.azurecr.io/sql-versioning-service:a1acba24f23f27c964a71330adfa81e75622966
         imageType: ContainerImage
         command:
-          - /bin/sh
+          - dotnet
         args:
-          - -lc
-          - dotnet /app/tools/create-api-key/CreateApiKey.dll "$DB_CONN"
+          - /app/tools/create-api-key/CreateApiKey.dll
         env:
           - name: DB_CONN
             secretRef: db-conn

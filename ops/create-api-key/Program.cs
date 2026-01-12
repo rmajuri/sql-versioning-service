@@ -29,7 +29,14 @@ if (args.Length == 0)
     Environment.Exit(1);
 }
 
-var connectionString = args[0];
+var connectionString = args.Length > 0 ? args[0] : Environment.GetEnvironmentVariable("DB_CONN");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    Console.Error.WriteLine("Usage: dotnet run -- <connection_string>");
+    Console.Error.WriteLine("Or set DB_CONN env var.");
+    Environment.Exit(1);
+}
 
 try
 {
