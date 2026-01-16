@@ -29,7 +29,8 @@ if (args.Length == 0)
     Environment.Exit(1);
 }
 
-var connectionString = args.Length > 0 ? args[0] : Environment.GetEnvironmentVariable("DB_CONN");
+var connectionString =
+    Environment.GetEnvironmentVariable("DB_CONN") ?? (args.Length > 0 ? args[0] : null);
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
