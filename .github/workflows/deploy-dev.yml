@@ -101,3 +101,11 @@ jobs:
             -g "${{ secrets.RESOURCE_GROUP }}" \
             -n "${{ secrets.CONTAINER_APP_NAME }}" \
             --image "${{ env.IMAGE }}"
+            
+      - name: Update create-api-key job
+        run: |
+          set -euo pipefail
+          az containerapp job update \
+            -g "${{ secrets.RESOURCE_GROUP }}" \
+            -n sqlversioning-createapikey-dev \
+            --image "${{ env.IMAGE }}"
