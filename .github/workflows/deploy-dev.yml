@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
@@ -20,12 +20,24 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Azure CLI sanity + Container Apps extension
+        run: |
+          set -euo pipefail
+          az version
+          # Ensure the Container Apps extension is present and up to date.
+          # This helps avoid CRD parsing / JSON handling bugs in older versions.
+          az extension add --name containerapp --upgrade
+          az extension show --name containerapp -o jsonc
+
       - name: ACR login (Azure identity)
         run: |
+          set -euo pipefail
           az acr login --name "${{ secrets.ACR_NAME }}"
 
       - name: Build + push image
         run: |
+          set -euo pipefail
+
           IMAGE_TAG="${{ github.sha }}"
           IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${{ secrets.IMAGE_NAME }}:${IMAGE_TAG}"
 
@@ -43,10 +55,28 @@ jobs:
           set -euo pipefail
           echo "Running migrations with IMAGE=$IMAGE"
 
-          az containerapp job update -g "$RG" -n "$JOB" --image "$IMAGE"
-          sleep 5
+          # Update job image (retry because the control plane can be transient)
+          for i in 1 2 3; do
+            if az containerapp job update -g "$RG" -n "$JOB" --image "$IMAGE"; then
+              break
+            fi
+            echo "job update failed (attempt $i), retrying..." >&2
+            sleep 10
+          done
 
-          EXEC=$(az containerapp job start -g "$RG" -n "$JOB" --query name -o tsv)
+          # Start job (retry because ACA can sometimes throw CRD retrieval errors)
+          EXEC=""
+          for i in 1 2 3; do
+            EXEC=$(az containerapp job start -g "$RG" -n "$JOB" --query name -o tsv) && break || true
+            echo "job start failed (attempt $i), retrying..." >&2
+            sleep 15
+          done
+
+          if [ -z "$EXEC" ]; then
+            echo "Failed to start migration job after retries." >&2
+            exit 1
+          fi
+
           echo "Started execution: $EXEC"
 
           for i in {1..90}; do
@@ -66,6 +96,7 @@ jobs:
 
       - name: Update Container App image
         run: |
+          set -euo pipefail
           az containerapp update \
             -g "${{ secrets.RESOURCE_GROUP }}" \
             -n "${{ secrets.CONTAINER_APP_NAME }}" \
