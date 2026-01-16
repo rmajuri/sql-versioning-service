@@ -63,3 +63,6 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# Postman collections
+*.postman_collection.json
