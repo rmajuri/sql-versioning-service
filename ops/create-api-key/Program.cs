@@ -18,17 +18,6 @@ using Npgsql;
 // The plaintext API key is printed ONCE. Store it securely.
 // ============================================================
 
-if (args.Length == 0)
-{
-    Console.Error.WriteLine("Usage: dotnet run -- <connection_string>");
-    Console.Error.WriteLine();
-    Console.Error.WriteLine("Example:");
-    Console.Error.WriteLine(
-        "  dotnet run -- \"Host=localhost;Port=5432;Database=sql_versioning;Username=postgres;Password=postgres\""
-    );
-    Environment.Exit(1);
-}
-
 var connectionString =
     Environment.GetEnvironmentVariable("DB_CONN") ?? (args.Length > 0 ? args[0] : null);
 
