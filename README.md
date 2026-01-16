@@ -254,4 +254,4 @@ If tests require Azure Blob Storage behavior locally, provide credentials throug
 - **Azurite/local emulator**: `AzureStorage__ConnectionString=UseDevelopmentStorage=true`
 - **Token-based auth**: Set `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` and `AzureStorage__ContainerUri`
 
-> ⚠️ Do not commit secrets to the repository. Use environment variables or CI secrets.
+> ⚠️ DO NOT commit secrets to the repository. Use environment variables or CI secrets.
