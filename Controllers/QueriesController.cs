@@ -8,10 +8,10 @@ namespace SqlVersioningService.Controllers;
 [Route("queries")]
 public class QueriesController : ControllerBase
 {
-    private readonly QueryService _queryService;
-    private readonly QueryCreationService _creationService;
+    private readonly IQueryService _queryService;
+    private readonly IQueryCreationService _creationService;
 
-    public QueriesController(QueryService queryService, QueryCreationService creationService)
+    public QueriesController(IQueryService queryService, IQueryCreationService creationService)
     {
         _queryService = queryService;
         _creationService = creationService;

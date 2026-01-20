@@ -65,7 +65,7 @@ public static class ServiceCollectionExtensions
         // Services
         services.AddScoped<IQueryService, QueryService>();
         services.AddScoped<IQueryVersioningService, QueryVersioningService>();
-        services.AddScoped<QueryCreationService>();
+        services.AddScoped<IQueryCreationService, QueryCreationService>();
         services.AddSingleton<IHashingService, HashingService>();
 
         return services;

@@ -1,9 +1,10 @@
 using SqlVersioningService.DTOs.Responses;
 using SqlVersioningService.Models;
 
+
 namespace SqlVersioningService.Services;
 
-public class QueryCreationService
+public class QueryCreationService : IQueryCreationService
 {
     private readonly IQueryService _queryService;
     private readonly IQueryVersioningService _versionService;
