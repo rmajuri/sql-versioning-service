@@ -13,7 +13,7 @@
         "header": [
           {
             "key": "x-api-key",
-            "value": "API_KEY_HERE",
+            "value": "",
             "type": "text"
           }
         ],
