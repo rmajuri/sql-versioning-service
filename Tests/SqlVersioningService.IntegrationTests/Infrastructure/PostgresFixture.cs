@@ -17,6 +17,12 @@ public class PostgresFixture : IAsyncLifetime
 
     private IConfiguration? _configuration;
 
+    static PostgresFixture()
+    {
+        // Configure Dapper to map snake_case columns to PascalCase properties
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
+    }
+
     public async Task InitializeAsync()
     {
         // Build configuration for DatabaseContext
