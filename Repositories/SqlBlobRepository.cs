@@ -12,7 +12,7 @@ public class SqlBlobRepository : ISqlBlobRepository
 
     private const string SqlSelectByHash =
         @"
-        SELECT hash, bytes_size AS BytesSize
+        SELECT hash, bytes_size
         FROM sql_blobs
         WHERE hash = @Hash;
     ";

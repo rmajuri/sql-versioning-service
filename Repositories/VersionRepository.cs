@@ -19,25 +19,25 @@ public class VersionRepository : IVersionRepository
 
     private const string SqlSelectLatestByQueryId =
         @"
-        SELECT Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt
-        FROM QueryVersions
-        WHERE QueryId = @QueryId
-        ORDER BY CreatedAt DESC
+        SELECT id, query_id, parent_version_id, blob_hash, note, created_at, updated_at
+        FROM query_versions
+        WHERE query_id = @QueryId
+        ORDER BY created_at DESC
         LIMIT 1;
     ";
 
     private const string SqlSelectByQueryId =
         @"
-        SELECT Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt
-        FROM QueryVersions
-        WHERE QueryId = @QueryId
-        ORDER BY CreatedAt DESC;
+        SELECT id, query_id, parent_version_id, blob_hash, note, created_at, updated_at
+        FROM query_versions
+        WHERE query_id = @QueryId
+        ORDER BY created_at DESC;
     ";
 
     private const string SqlInsert =
         @"
-        INSERT INTO QueryVersions
-            (Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt)
+        INSERT INTO query_versions
+            (id, query_id, parent_version_id, blob_hash, note, created_at, updated_at)
         VALUES
             (@Id, @QueryId, @ParentVersionId, @BlobHash, @Note, @CreatedAt, @UpdatedAt);
     ";
@@ -45,22 +45,22 @@ public class VersionRepository : IVersionRepository
     private const string SqlExists =
         @"
         SELECT EXISTS(
-            SELECT 1 FROM QueryVersions WHERE QueryId = @QueryId AND BlobHash = @BlobHash
+            SELECT 1 FROM query_versions WHERE query_id = @QueryId AND blob_hash = @BlobHash
         );
     ";
 
     private const string SqlSelectHeadVersionId =
         @"
-        SELECT HeadVersionId
-        FROM Queries
-        WHERE Id = @QueryId;
+        SELECT head_version_id
+        FROM queries
+        WHERE id = @QueryId;
     ";
 
     private const string SqlSelectById =
         @"
-        SELECT Id, QueryId, ParentVersionId, BlobHash, Note, CreatedAt, UpdatedAt
-        FROM QueryVersions
-        WHERE Id = @VersionId
+        SELECT id, query_id, parent_version_id, blob_hash, note, created_at, updated_at
+        FROM query_versions
+        WHERE id = @VersionId
         LIMIT 1;
     ";
 

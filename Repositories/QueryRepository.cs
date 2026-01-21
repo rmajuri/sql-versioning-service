@@ -16,42 +16,42 @@ public class QueryRepository : IQueryRepository
 
     private const string SqlSelectById =
         @"
-        SELECT Id, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt, DeletedAt
-        FROM Queries
-        WHERE Id = @Id AND IsDeleted = FALSE;
+        SELECT id, name, head_version_id, is_deleted, created_at, updated_at, deleted_at
+        FROM queries
+        WHERE id = @Id AND is_deleted = FALSE;
     ";
 
     private const string SqlInsert =
         @"
-        INSERT INTO Queries
-            (Id, Name, HeadVersionId, IsDeleted, CreatedAt, UpdatedAt)
+        INSERT INTO queries
+            (id, name, head_version_id, is_deleted, created_at, updated_at)
         VALUES
             (@Id, @Name, @HeadVersionId, @IsDeleted, @CreatedAt, @UpdatedAt);
     ";
 
     private const string SqlUpdate =
         @"
-        UPDATE Queries SET
-            Name = @Name,
-            HeadVersionId = @HeadVersionId,
-            UpdatedAt = @UpdatedAt
-        WHERE Id = @Id;
+        UPDATE queries SET
+            name = @Name,
+            head_version_id = @HeadVersionId,
+            updated_at = @UpdatedAt
+        WHERE id = @Id;
     ";
 
     private const string SqlSoftDelete =
         @"
-        UPDATE Queries
-        SET IsDeleted = TRUE,
-            DeletedAt = @Now
-        WHERE Id = @Id;
+        UPDATE queries
+        SET is_deleted = TRUE,
+            deleted_at = @Now
+        WHERE id = @Id;
     ";
 
     private const string SqlUpdateHeadVersion =
         @"
-        UPDATE Queries
-        SET HeadVersionId = @VersionId,
-            UpdatedAt = @Now
-        WHERE Id = @QueryId;
+        UPDATE queries
+        SET head_version_id = @VersionId,
+            updated_at = @Now
+        WHERE id = @QueryId;
     ";
 
     // ------------------------------------------------------------
