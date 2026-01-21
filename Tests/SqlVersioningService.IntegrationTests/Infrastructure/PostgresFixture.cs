@@ -29,35 +29,47 @@ public class PostgresFixture : IAsyncLifetime
         await using var conn = new NpgsqlConnection(ConnectionString);
         await conn.OpenAsync();
 
+        // Drop existing tables to ensure clean schema
+        await conn.ExecuteAsync(
+            @"
+            DROP TABLE IF EXISTS query_versions CASCADE;
+            DROP TABLE IF EXISTS queries CASCADE;
+            DROP TABLE IF EXISTS sql_blobs CASCADE;
+            DROP TABLE IF EXISTS api_keys CASCADE;
+            DROP TABLE IF EXISTS ""QueryVersions"" CASCADE;
+            DROP TABLE IF EXISTS ""Queries"" CASCADE;
+        "
+        );
+
         // Create schema once for the entire test collection
         await conn.ExecuteAsync(
             @"
-            CREATE TABLE IF NOT EXISTS Queries (
-                Id UUID PRIMARY KEY,
-                Name TEXT NOT NULL,
-                HeadVersionId UUID NULL,
-                IsDeleted BOOLEAN NOT NULL DEFAULT FALSE,
-                CreatedAt TIMESTAMPTZ NOT NULL,
-                UpdatedAt TIMESTAMPTZ NOT NULL,
-                DeletedAt TIMESTAMPTZ NULL
+            CREATE TABLE queries (
+                id UUID PRIMARY KEY,
+                name TEXT NOT NULL,
+                head_version_id UUID NULL,
+                is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMPTZ NOT NULL,
+                updated_at TIMESTAMPTZ NOT NULL,
+                deleted_at TIMESTAMPTZ NULL
             );
 
-            CREATE TABLE IF NOT EXISTS QueryVersions (
-                Id UUID PRIMARY KEY,
-                QueryId UUID NOT NULL REFERENCES Queries(Id) ON DELETE CASCADE,
-                ParentVersionId UUID NULL REFERENCES QueryVersions(Id),
-                BlobHash TEXT NOT NULL,
-                Note TEXT NULL,
-                CreatedAt TIMESTAMPTZ NOT NULL,
-                UpdatedAt TIMESTAMPTZ NOT NULL
+            CREATE TABLE query_versions (
+                id UUID PRIMARY KEY,
+                query_id UUID NOT NULL REFERENCES queries(id) ON DELETE CASCADE,
+                parent_version_id UUID NULL REFERENCES query_versions(id),
+                blob_hash TEXT NOT NULL,
+                note TEXT NULL,
+                created_at TIMESTAMPTZ NOT NULL,
+                updated_at TIMESTAMPTZ NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS sql_blobs (
+            CREATE TABLE sql_blobs (
                 hash TEXT PRIMARY KEY,
                 bytes_size INT NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS api_keys (
+            CREATE TABLE api_keys (
                 id UUID PRIMARY KEY,
                 hashed_key TEXT NOT NULL UNIQUE,
                 created_at TIMESTAMPTZ NOT NULL,
@@ -96,8 +108,8 @@ public class PostgresFixture : IAsyncLifetime
         // Order matters due to FK constraints
         conn.Execute(
             @"
-            DELETE FROM QueryVersions;
-            DELETE FROM Queries;
+            DELETE FROM query_versions;
+            DELETE FROM queries;
             DELETE FROM sql_blobs;
             DELETE FROM api_keys;
         "
