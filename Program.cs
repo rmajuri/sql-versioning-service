@@ -1,5 +1,9 @@
+using Dapper;
 using SqlVersioningService.Extensions;
 using SqlVersioningService.Middleware;
+
+// Configure Dapper to map snake_case columns to PascalCase properties
+DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
