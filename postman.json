@@ -1,5 +1,3 @@
-// Postman Collection for SQL Versioning Service API
-
 {
   "info": {
     "name": "SQL Versioning Service API",
@@ -36,7 +34,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer",
+            "value": "Bearer {{API_KEY}}",
             "type": "text"
           },
           {
@@ -66,7 +64,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer",
+            "value": "Bearer {{API_KEY}}",
             "type": "text"
           }
         ],
@@ -87,7 +85,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer",
+            "value": "Bearer {{API_KEY}}",
             "type": "text"
           },
           {
@@ -117,7 +115,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer",
+            "value": "Bearer {{API_KEY}}",
             "type": "text"
           }
         ],
@@ -138,7 +136,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer",
+            "value": "Bearer {{API_KEY}}",
             "type": "text"
           }
         ],
@@ -159,7 +157,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer",
+            "value": "Bearer {{API_KEY}}",
             "type": "text"
           }
         ],
@@ -182,6 +180,11 @@
     },
     {
       "key": "versionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "API_KEY",
       "value": "",
       "type": "string"
     }
